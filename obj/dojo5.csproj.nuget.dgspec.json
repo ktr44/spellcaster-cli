@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\VScode\\C#\\dojo5\\dojo5.csproj": {}
+    "C:\\Vscode\\C#\\dojo5\\dojo5.csproj": {}
   },
   "projects": {
-    "C:\\VScode\\C#\\dojo5\\dojo5.csproj": {
+    "C:\\Vscode\\C#\\dojo5\\dojo5.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\VScode\\C#\\dojo5\\dojo5.csproj",
+        "projectUniqueName": "C:\\Vscode\\C#\\dojo5\\dojo5.csproj",
         "projectName": "dojo5",
-        "projectPath": "C:\\VScode\\C#\\dojo5\\dojo5.csproj",
+        "projectPath": "C:\\Vscode\\C#\\dojo5\\dojo5.csproj",
         "packagesPath": "C:\\Users\\belad\\.nuget\\packages\\",
-        "outputPath": "C:\\VScode\\C#\\dojo5\\obj\\",
+        "outputPath": "C:\\Vscode\\C#\\dojo5\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\belad\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -43,6 +43,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "DotNetEnv": {
+              "target": "Package",
+              "version": "[3.1.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

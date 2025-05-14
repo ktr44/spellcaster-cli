@@ -1,0 +1,14 @@
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\dojo5.exe
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\dojo5.deps.json
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\dojo5.runtimeconfig.json
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\dojo5.dll
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\dojo5.pdb
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.GeneratedMSBuildEditorConfig.editorconfig
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.AssemblyInfoInputs.cache
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.AssemblyInfo.cs
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.csproj.CoreCompileInputs.cache
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.dll
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\refint\dojo5.dll
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.pdb
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.genruntimeconfig.cache
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\ref\dojo5.dll

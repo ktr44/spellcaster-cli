@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Vscode\\C#\\dojo5\\dojo5.csproj": {}
+    "C:\\VScode\\C#\\dojo5\\dojo5.csproj": {}
   },
   "projects": {
-    "C:\\Vscode\\C#\\dojo5\\dojo5.csproj": {
+    "C:\\VScode\\C#\\dojo5\\dojo5.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Vscode\\C#\\dojo5\\dojo5.csproj",
+        "projectUniqueName": "C:\\VScode\\C#\\dojo5\\dojo5.csproj",
         "projectName": "dojo5",
-        "projectPath": "C:\\Vscode\\C#\\dojo5\\dojo5.csproj",
+        "projectPath": "C:\\VScode\\C#\\dojo5\\dojo5.csproj",
         "packagesPath": "C:\\Users\\belad\\.nuget\\packages\\",
-        "outputPath": "C:\\Vscode\\C#\\dojo5\\obj\\",
+        "outputPath": "C:\\VScode\\C#\\dojo5\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\belad\\AppData\\Roaming\\NuGet\\NuGet.Config"

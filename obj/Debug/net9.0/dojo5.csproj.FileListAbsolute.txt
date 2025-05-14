@@ -12,3 +12,4 @@ C:\Vscode\C#\dojo5\obj\Debug\net9.0\refint\dojo5.dll
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.pdb
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.genruntimeconfig.cache
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\ref\dojo5.dll
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.sourcelink.json

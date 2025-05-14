@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.IO;
+using System.Text;
 using DotNetEnv;
 
 namespace AICommandLineApp
@@ -16,6 +16,11 @@ namespace AICommandLineApp
 
         static async Task Main()
         {
+            // Chargement des clés d'API
+            DotNetEnv.Env.Load();
+            OpenAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "";
+            MeteoApiKey = Environment.GetEnvironmentVariable("METEO_API_KEY") ?? "";
+
             bool continuer = true;
             while (continuer)
             {
@@ -58,7 +63,9 @@ namespace AICommandLineApp
             Console.WriteLine("Entrez le texte en français :");
             string userText = Console.ReadLine() ?? "";
 
-            string correctedText = await EnvoyerRequeteIA($"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {userText}");
+            string correctedText = await EnvoyerRequeteIA(
+                $"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {userText}"
+            );
             Console.WriteLine("\nTexte corrigé : " + correctedText);
         }
 
@@ -71,7 +78,9 @@ namespace AICommandLineApp
             string option = Console.ReadLine() ?? "";
             string targetLang = option == "2" ? "anglais britannique" : "anglais américain";
 
-            string translatedText = await EnvoyerRequeteIA($"Traduis ce texte du français vers l'{targetLang}, en retournant uniquement la traduction : {userText}");
+            string translatedText = await EnvoyerRequeteIA(
+                $"Traduis ce texte du français vers l'{targetLang}, en retournant uniquement la traduction : {userText}"
+            );
             Console.WriteLine("\nTexte traduit : " + translatedText);
         }
 
@@ -81,7 +90,8 @@ namespace AICommandLineApp
             string ville = Console.ReadLine() ?? "";
 
             using HttpClient client = new HttpClient();
-            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={MeteoApiKey}&units=metric";
+            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={MeteoApiKey}&units=metric&lang=fr";
+
 
             try
             {
@@ -113,74 +123,82 @@ namespace AICommandLineApp
             string htmlContent = $@"<!DOCTYPE html>
 <html lang=""fr"">
 <head>
-    <meta charset=""UTF-8"">
-    <title>Météo à {ville}</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: linear-gradient(120deg, #6EC6FF, #2196F3);
-            color: white;
-            margin: 20px;
-        }}
-        h1 {{
-            margin-top: 20px;
-            font-size: 28px;
-        }}
-        .weather-container {{
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 300px;
-        }}
-        .icon {{
-            font-size: 50px;
-            margin-bottom: 10px;
-        }}
-        .temperature {{
-            font-size: 24px;
-            font-weight: bold;
-        }}
-        .description {{
-            font-size: 18px;
-            margin-top: 10px;
-        }}
-    </style>
+<meta charset=""UTF-8"">
+<title>Météo à {ville}</title>
+<style>
+body {{
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(120deg, #6EC6FF, #2196F3);
+    color: white;
+    margin: 20px;
+}}
+h1 {{
+    margin-top: 20px;
+    font-size: 28px;
+}}
+.weather-container {{
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+}}
+.icon img {{
+    width: 80px;
+    height: 80px;
+}}
+.temperature {{
+    font-size: 24px;
+    font-weight: bold;
+}}
+.description {{
+    font-size: 18px;
+    margin-top: 10px;
+}}
+</style>
 </head>
 <body>
-    <h1>Météo à {ville}</h1>
-    <div class=""weather-container"">
-        <div class=""icon"">{ObtenirIcôneMétéo(description)}</div>
-        <div class=""temperature"">{temperature}°C</div>
-        <div class=""description"">{description}</div>
-    </div>
+<h1>Météo à {ville}</h1>
+<div class=""weather-container"">
+<div class=""icon"">{ObtenirIcôneMétéo(description)}</div>
+<div class=""temperature"">{temperature}°C</div>
+<div class=""description"">{description}</div>
+</div>
 </body>
 </html>";
 
             string fileName = $"{ville}_meteo.html";
             File.WriteAllText(fileName, htmlContent);
-            Console.WriteLine($"✅ Fichier HTML généré : {fileName}");
+            Console.WriteLine($"Fichier HTML généré : {fileName}");
         }
 
         static string ObtenirIcôneMétéo(string description)
-        {
-            description = description.ToLower();
+{
+    description = description.ToLower();
 
-            if (description.Contains("soleil") || description.Contains("clair"))
-                return "☀️";
-            if (description.Contains("nuage"))
-                return "☁️";
-            if (description.Contains("pluie"))
-                return "🌧️";
-            if (description.Contains("orage"))
-                return "⛈️";
-            if (description.Contains("neige"))
-                return "❄️";
+    if (description.Contains("soleil") || description.Contains("ciel dégagé"))
+        return @"<img src='images/sun.png' alt='Soleil' width='80' height='80'>";
+    if (description.Contains("couvert"))
+        return @"<img src='images/temps-nuageux.png' alt='Nuageux' width='80' height='80'>";
+    if (description.Contains("pluie"))
+        return @"<img src='images/rain.png' alt='Pluie' width='80' height='80'>";
+    if (description.Contains("orage"))
+        return @"<img src='images/orage.png' alt='Orage' width='80' height='80'>";
+    if (description.Contains("froid"))
+        return @"<img src='images/du-froid.png' alt='Froid' width='80' height='80'>";
+    if (description.Contains("brouillard"))
+        return @"<img src='images/brouillard.png' alt='Brouillard' width='80' height='80'>";
+    if (description.Contains("vent"))
+        return @"<img src='images/vent.png' alt='Vent' width='80' height='80'>";
+    if (description.Contains("arc"))
+        return @"<img src='images/arc-en-ciel.png' alt='Arc-en-ciel' width='80' height='80'>";
 
-            return "";
-        }
+    return "<p>Icône indisponible</p>";
+}
+
+
         static async Task<string> EnvoyerRequeteIA(string prompt)
         {
             using (HttpClient client = new HttpClient())

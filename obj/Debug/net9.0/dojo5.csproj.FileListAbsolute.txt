@@ -13,3 +13,10 @@ C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.pdb
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.genruntimeconfig.cache
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\ref\dojo5.dll
 C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.sourcelink.json
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.csproj.AssemblyReference.cache
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\DotNetEnv.dll
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll
+C:\Vscode\C#\dojo5\bin\Debug\net9.0\Sprache.dll
+C:\Vscode\C#\dojo5\obj\Debug\net9.0\dojo5.csproj.Up2Date

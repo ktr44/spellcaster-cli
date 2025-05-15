@@ -62,8 +62,8 @@ namespace SpellcasterCLI
         {
             Console.WriteLine("Entrez votre texte en français : ");
             string texteUtilisateur = Console.ReadLine();
-            string texteCorrige = await EnvoyerRequeteIA("Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé " + texteUtilisateur);
-            Console.WriteLine("\nTexte corrigé " + texteCorrige);
+            string texteCorrige = await EnvoyerRequeteIA("Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : " + texteUtilisateur);
+            Console.WriteLine("\nTexte corrigé : " + texteCorrige);
         }
 
         static async Task TraduireTexte()
@@ -82,13 +82,13 @@ namespace SpellcasterCLI
                 langueCible = "anglais américain";
             }
 
-            string texteTraduit = await EnvoyerRequeteIA("Traduis ce texte du français vers l'" + langueCible + ", en retournant uniquement la traduction " + texteUtilisateur);
-            Console.WriteLine("\nTexte traduit " + texteTraduit);
+            string texteTraduit = await EnvoyerRequeteIA("Traduis ce texte du français vers l'" + langueCible + ", en retournant uniquement la traduction : " + texteUtilisateur);
+            Console.WriteLine("\nTexte traduit : " + texteTraduit);
         }
 
         static async Task AfficherMeteoEtCreerHTML()
         {
-            Console.Write("Entrez une ville ");
+            Console.Write("Entrez une ville : ");
             string ville = Console.ReadLine();
             using HttpClient client = new HttpClient();
             string url = "https://api.openweathermap.org/data/2.5/weather?q=" + ville + "&appid=" + apiKeys["weatherApiKey"] + "&units=metric&lang=fr";
@@ -105,13 +105,13 @@ namespace SpellcasterCLI
 
                 string descriptionMeteo = meteo[0].GetProperty("description").GetString();
                 string temperature = donneesMeteo.GetProperty("main").GetProperty("temp").ToString();
-                Console.WriteLine("Météo " + descriptionMeteo);
-                Console.WriteLine("Température " + temperature + "°C");
+                Console.WriteLine("Météo : " + descriptionMeteo);
+                Console.WriteLine("Température : " + temperature + "°C");
                 CreerFichierHTML(ville, descriptionMeteo, temperature);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Erreur " + ex.Message);
+                Console.WriteLine("Erreur : " + ex.Message);
             }
         }
 
@@ -121,7 +121,7 @@ namespace SpellcasterCLI
 
             string nomFichier = ville + "_meteo.html";
             File.WriteAllText(nomFichier, contenuHTML);
-            Console.WriteLine("Fichier HTML généré " + nomFichier);
+            Console.WriteLine("Fichier HTML généré : " + nomFichier);
         }
 
         static string AssocierIconeMeteo(string descriptionMeteo)
@@ -149,33 +149,31 @@ namespace SpellcasterCLI
             return "<p>Icône indisponible</p>";
         }
 
-        static async Task<string> EnvoyerRequeteIA(string prompt)
+        static async Task<string> EnvoyerRequeteIA(string message)
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKeys["openAiKey"]);
-            var requestBody = new
+            try
             {
-                model = modeleIA,
-                messages = new[] { new { role = "user", content = prompt } }
-            };
+                using HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKeys["openAiKey"]);
 
-            string jsonBody = JsonSerializer.Serialize(requestBody);
-            var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", new StringContent(jsonBody, Encoding.UTF8, "application/json"));
+                string json = $"{{\"model\":\"{modeleIA}\",\"messages\":[{{\"role\":\"user\",\"content\":\"{message}\"}}]}}";
+                var contenu = new StringContent(json, Encoding.UTF8, "application/json");
 
-            if (response.IsSuccessStatusCode)
-            {
-                JsonElement jsonElement = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
-                return jsonElement.GetProperty("choices")[0]
-                                  .GetProperty("message")
-                                  .GetProperty("content")
-                                  .GetString();
+                var reponse = await client.PostAsync("https://api.openai.com/v1/chat/completions", contenu);
+                string texte = await reponse.Content.ReadAsStringAsync();
+
+                var doc = JsonDocument.Parse(texte);
+                var choix = doc.RootElement.GetProperty("choices")[0];
+                string texteCorrige = choix.GetProperty("message").GetProperty("content").GetString();
+
+                return texteCorrige;
             }
-            else
+            catch (Exception ex)
             {
-                return "Erreur lors de la requête à l'API.";
+                Console.WriteLine("Erreur : " + ex.Message);
+                return "Erreur lors de la correction.";
             }
         }
-
         static async Task QuitterApplication()
         {
             Console.WriteLine("Merci d'avoir utilisé l'application. À bientôt ");

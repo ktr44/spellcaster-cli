@@ -17,7 +17,7 @@ namespace SpellcasterCLI
 
         static async Task Main()
         {
-            DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load();//variable d'environnemnt
             apiKeys = new Dictionary<string, string>
             {
                 { "openAiKey", Environment.GetEnvironmentVariable("OPENAI_API_KEY") },
@@ -72,7 +72,16 @@ namespace SpellcasterCLI
             string texteUtilisateur = Console.ReadLine();
             Console.WriteLine("\nChoisissez la traduction : (1) Anglais US, (2) Anglais UK");
             string choixLangue = Console.ReadLine();
-            string langueCible = choixLangue == "2" ? "anglais britannique" : "anglais américain";
+            string langueCible;
+            if (choixLangue == "2")
+            {
+                langueCible = "anglais britannique";
+            }
+            else
+            {
+                langueCible = "anglais américain";
+            }
+
             string texteTraduit = await EnvoyerRequeteIA($"Traduis ce texte du français vers l'{langueCible}, en retournant uniquement la traduction : {texteUtilisateur}");
             Console.WriteLine("\nTexte traduit : " + texteTraduit);
         }

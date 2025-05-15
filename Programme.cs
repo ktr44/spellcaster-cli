@@ -151,6 +151,7 @@ body {{
                 { "soleil", "images/01.png" },
                 { "clair", "images/01.png" },
                 { "nuage", "images/02.png" },
+                {"couvert", "images/02.png" },
                 { "pluie", "images/04.png" },
                 { "orage", "images/05.png" },
                 { "neige", "images/06.png" },

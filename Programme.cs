@@ -5,21 +5,32 @@ using System.Text.Json;
 using System.IO;
 using System.Text;
 using DotNetEnv;
+using System.Collections.Generic;
 
 namespace AICommandLineApp
 {
     class Program
     {
-        private static string OpenAIApiKey;
-        private static string MeteoApiKey;
+        private static Dictionary<string, string> config;
+        private static Dictionary<string, Func<Task>> actions;
         private static string modele = "gpt-4o-mini";
 
         static async Task Main()
         {
-            // Chargement des clés d'API
             DotNetEnv.Env.Load();
-            OpenAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "";
-            MeteoApiKey = Environment.GetEnvironmentVariable("METEO_API_KEY") ?? "";
+            config = new Dictionary<string, string>
+            {
+                { "OpenAIApiKey", Environment.GetEnvironmentVariable("OPENAI_API_KEY") },
+                { "MeteoApiKey", Environment.GetEnvironmentVariable("METEO_API_KEY") }
+            };
+
+            actions = new Dictionary<string, Func<Task>>
+            {
+                { "1", CorrectionTexte },
+                { "2", TraductionTexte },
+                { "3", ObtenirMeteoEtGenererHTML },
+                { "4", QuitterApplication }
+            };
 
             bool continuer = true;
             while (continuer)
@@ -31,73 +42,52 @@ namespace AICommandLineApp
                 Console.WriteLine("3 : Météo & Génération HTML");
                 Console.WriteLine("4 : Quitter");
                 Console.Write("Votre choix : ");
-                string choix = Console.ReadLine() ?? "";
+                string choix = Console.ReadLine();
 
-                switch (choix)
+                if (actions.ContainsKey(choix))
                 {
-                    case "1":
-                        await CorrectionTexte();
-                        break;
-                    case "2":
-                        await TraductionTexte();
-                        break;
-                    case "3":
-                        await ObtenirMeteoEtGenererHTML();
-                        break;
-                    case "4":
-                        continuer = false;
-                        break;
-                    default:
-                        Console.WriteLine("Option non reconnue.");
-                        break;
+                    await actions[choix]();
+                    if (choix == "4") continuer = false;
+                }
+                else
+                {
+                    Console.WriteLine("Option non reconnue.");
                 }
 
                 Console.WriteLine();
             }
-
-            Console.WriteLine("Merci d'avoir utilisé l'application. Au revoir !");
         }
 
         static async Task CorrectionTexte()
         {
             Console.WriteLine("Entrez le texte en français :");
-            string userText = Console.ReadLine() ?? "";
-
-            string correctedText = await EnvoyerRequeteIA(
-                $"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {userText}"
-            );
+            string userText = Console.ReadLine();
+            string correctedText = await EnvoyerRequeteIA($"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {userText}");
             Console.WriteLine("\nTexte corrigé : " + correctedText);
         }
 
         static async Task TraductionTexte()
         {
             Console.WriteLine("Entrez le texte en français à traduire :");
-            string userText = Console.ReadLine() ?? "";
-
+            string userText = Console.ReadLine();
             Console.WriteLine("\nChoisissez la traduction : (1) Anglais US, (2) Anglais UK");
-            string option = Console.ReadLine() ?? "";
+            string option = Console.ReadLine();
             string targetLang = option == "2" ? "anglais britannique" : "anglais américain";
-
-            string translatedText = await EnvoyerRequeteIA(
-                $"Traduis ce texte du français vers l'{targetLang}, en retournant uniquement la traduction : {userText}"
-            );
+            string translatedText = await EnvoyerRequeteIA($"Traduis ce texte du français vers l'{targetLang}, en retournant uniquement la traduction : {userText}");
             Console.WriteLine("\nTexte traduit : " + translatedText);
         }
 
         static async Task ObtenirMeteoEtGenererHTML()
         {
             Console.Write("Entrez une Ville : ");
-            string ville = Console.ReadLine() ?? "";
-
+            string ville = Console.ReadLine();
             using HttpClient client = new HttpClient();
-            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={MeteoApiKey}&units=metric&lang=fr";
-
+            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={config["MeteoApiKey"]}&units=metric&lang=fr";
 
             try
             {
                 string responseBody = await client.GetStringAsync(url);
                 var weatherData = JsonSerializer.Deserialize<JsonElement>(responseBody);
-
                 if (!weatherData.TryGetProperty("weather", out JsonElement meteo) || meteo.GetArrayLength() == 0)
                 {
                     Console.WriteLine("Ville introuvable ou erreur API.");
@@ -106,10 +96,8 @@ namespace AICommandLineApp
 
                 string description = meteo[0].GetProperty("description").GetString() ?? "Non disponible";
                 string temperature = weatherData.GetProperty("main").GetProperty("temp").ToString();
-
                 Console.WriteLine($"Météo : {description}");
                 Console.WriteLine($"Température : {temperature}°C");
-
                 GenererFichierHTML(ville, description, temperature);
             }
             catch (Exception ex)
@@ -133,38 +121,20 @@ body {{
     color: white;
     margin: 20px;
 }}
-h1 {{
-    margin-top: 20px;
-    font-size: 28px;
-}}
 .weather-container {{
     display: inline-block;
     background: rgba(255, 255, 255, 0.2);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    width: 300px;
-}}
-.icon img {{
-    width: 80px;
-    height: 80px;
-}}
-.temperature {{
-    font-size: 24px;
-    font-weight: bold;
-}}
-.description {{
-    font-size: 18px;
-    margin-top: 10px;
 }}
 </style>
 </head>
 <body>
 <h1>Météo à {ville}</h1>
 <div class=""weather-container"">
-<div class=""icon"">{ObtenirIcôneMétéo(description)}</div>
-<div class=""temperature"">{temperature}°C</div>
-<div class=""description"">{description}</div>
+    <div class=""icon"">{Imagemeteo(description)}</div>
+    <div class=""temperature"">{temperature}°C</div>
+    <div class=""description"">{description}</div>
 </div>
 </body>
 </html>";
@@ -174,63 +144,52 @@ h1 {{
             Console.WriteLine($"Fichier HTML généré : {fileName}");
         }
 
-        static string ObtenirIcôneMétéo(string description)
-{
-    description = description.ToLower();
+        static string Imagemeteo(string description)
+        {
+            var conditionsMeteo = new Dictionary<string, string>
+            {
+                { "soleil", "images/01.png" },
+                { "clair", "images/01.png" },
+                { "nuage", "images/02.png" },
+                { "pluie", "images/04.png" },
+                { "orage", "images/05.png" },
+                { "neige", "images/06.png" },
+                { "brouillard", "images/03.png" }
+            };
 
-    if (description.Contains("soleil") || description.Contains("ciel dégagé"))
-        return @"<img src='images/sun.png' alt='Soleil' width='80' height='80'>";
-    if (description.Contains("couvert"))
-        return @"<img src='images/temps-nuageux.png' alt='Nuageux' width='80' height='80'>";
-    if (description.Contains("pluie"))
-        return @"<img src='images/rain.png' alt='Pluie' width='80' height='80'>";
-    if (description.Contains("orage"))
-        return @"<img src='images/orage.png' alt='Orage' width='80' height='80'>";
-    if (description.Contains("froid"))
-        return @"<img src='images/du-froid.png' alt='Froid' width='80' height='80'>";
-    if (description.Contains("brouillard"))
-        return @"<img src='images/brouillard.png' alt='Brouillard' width='80' height='80'>";
-    if (description.Contains("vent"))
-        return @"<img src='images/vent.png' alt='Vent' width='80' height='80'>";
-    if (description.Contains("arc"))
-        return @"<img src='images/arc-en-ciel.png' alt='Arc-en-ciel' width='80' height='80'>";
+            foreach (var condition in conditionsMeteo)
+            {
+                if (description.Contains(condition.Key))
+                {
+                    return $"<img src='{condition.Value}' alt='{description}' />";
+                }
+            }
 
-    return "<p>Icône indisponible</p>";
-}
-
+            return "<p>Icône indisponible</p>";
+        }
 
         static async Task<string> EnvoyerRequeteIA(string prompt)
         {
-            using (HttpClient client = new HttpClient())
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {config["OpenAIApiKey"]}");
+            var requestBody = new
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAIApiKey}");
-                var requestBody = new
-                {
-                    model = modele,
-                    messages = new[]
-                    {
-                        new { role = "system", content = "Tu es un assistant de correction et de traduction." },
-                        new { role = "user", content = prompt }
-                    }
-                };
+                model = modele,
+                messages = new[] { new { role = "user", content = prompt } }
+            };
 
-                string jsonBody = JsonSerializer.Serialize(requestBody);
-                var response = await client.PostAsync(
-                    "https://api.openai.com/v1/chat/completions",
-                    new StringContent(jsonBody, Encoding.UTF8, "application/json")
-                );
+            string jsonBody = JsonSerializer.Serialize(requestBody);
+            var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", new StringContent(jsonBody, Encoding.UTF8, "application/json"));
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    using JsonDocument doc = JsonDocument.Parse(responseContent);
-                    return doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
-                }
-                else
-                {
-                    return "Erreur lors de la requête à l'API.";
-                }
-            }
+            return response.IsSuccessStatusCode
+                ? JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()
+                : "Erreur lors de la requête à l'API.";
+        }
+
+        static async Task QuitterApplication()
+        {
+            Console.WriteLine("Merci d'avoir utilisé l'application. Au revoir !");
+            await Task.CompletedTask;
         }
     }
 }

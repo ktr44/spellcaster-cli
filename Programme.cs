@@ -17,7 +17,7 @@ namespace SpellcasterCLI
 
         static async Task Main()
         {
-            DotNetEnv.Env.Load();//variable d'environnemnt
+            DotNetEnv.Env.Load(); // Variable d'environnement
             apiKeys = new Dictionary<string, string>
             {
                 { "openAiKey", Environment.GetEnvironmentVariable("OPENAI_API_KEY") },
@@ -160,7 +160,7 @@ body {{
                 { "soleil", "images/01.png" },
                 { "clair", "images/01.png" },
                 { "nuage", "images/02.png" },
-                {"couvert", "images/02.png" },
+                { "couvert", "images/02.png" },
                 { "pluie", "images/04.png" },
                 { "orage", "images/05.png" },
                 { "neige", "images/06.png" },
@@ -192,7 +192,11 @@ body {{
             var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", new StringContent(jsonBody, Encoding.UTF8, "application/json"));
 
             return response.IsSuccessStatusCode
-                ? JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()
+                ? JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString()
                 : "Erreur lors de la requête à l'API.";
         }
 
@@ -201,5 +205,5 @@ body {{
             Console.WriteLine("Merci d'avoir utilisé l'application. À bientôt !");
             await Task.CompletedTask;
         }
-    } 
+    }
 }

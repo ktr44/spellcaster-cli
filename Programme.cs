@@ -35,7 +35,7 @@ namespace SpellcasterCLI
             bool enCours = true;
             while (enCours)
             {
-                Console.WriteLine("=== SPELLCASTER CLI ===");
+                Console.WriteLine("\n=== SPELLCASTER CLI ===");
                 Console.WriteLine("Choisissez une option :");
                 Console.WriteLine("1 : Vérificateur d'orthographe");
                 Console.WriteLine("2 : Traduction US ou UK");
@@ -201,5 +201,5 @@ body {{
             Console.WriteLine("Merci d'avoir utilisé l'application. À bientôt !");
             await Task.CompletedTask;
         }
-    }
+    } 
 }

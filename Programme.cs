@@ -7,33 +7,33 @@ using System.Text;
 using DotNetEnv;
 using System.Collections.Generic;
 
-namespace AICommandLineApp
+namespace SpellcasterCLI
 {
     class Program
     {
-        private static Dictionary<string, string> config;
-        private static Dictionary<string, Func<Task>> actions;
-        private static string modele = "gpt-4o-mini";
+        private static Dictionary<string, string> apiKeys;
+        private static Dictionary<string, Func<Task>> menuActions;
+        private static string modeleIA = "gpt-4o-mini";
 
         static async Task Main()
         {
             DotNetEnv.Env.Load();
-            config = new Dictionary<string, string>
+            apiKeys = new Dictionary<string, string>
             {
-                { "OpenAIApiKey", Environment.GetEnvironmentVariable("OPENAI_API_KEY") },
-                { "MeteoApiKey", Environment.GetEnvironmentVariable("METEO_API_KEY") }
+                { "openAiKey", Environment.GetEnvironmentVariable("OPENAI_API_KEY") },
+                { "weatherApiKey", Environment.GetEnvironmentVariable("METEO_API_KEY") }
             };
 
-            actions = new Dictionary<string, Func<Task>>
+            menuActions = new Dictionary<string, Func<Task>>
             {
-                { "1", CorrectionTexte },
-                { "2", TraductionTexte },
-                { "3", ObtenirMeteoEtGenererHTML },
+                { "1", VerifierOrthographe },
+                { "2", TraduireTexte },
+                { "3", AfficherMeteoEtCreerHTML },
                 { "4", QuitterApplication }
             };
 
-            bool continuer = true;
-            while (continuer)
+            bool enCours = true;
+            while (enCours)
             {
                 Console.WriteLine("=== SPELLCASTER CLI ===");
                 Console.WriteLine("Choisissez une option :");
@@ -44,10 +44,10 @@ namespace AICommandLineApp
                 Console.Write("Votre choix : ");
                 string choix = Console.ReadLine();
 
-                if (actions.ContainsKey(choix))
+                if (menuActions.ContainsKey(choix))
                 {
-                    await actions[choix]();
-                    if (choix == "4") continuer = false;
+                    await menuActions[choix]();
+                    if (choix == "4") enCours = false;
                 }
                 else
                 {
@@ -58,47 +58,47 @@ namespace AICommandLineApp
             }
         }
 
-        static async Task CorrectionTexte()
+        static async Task VerifierOrthographe()
         {
-            Console.WriteLine("Entrez le texte en français :");
-            string userText = Console.ReadLine();
-            string correctedText = await EnvoyerRequeteIA($"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {userText}");
-            Console.WriteLine("\nTexte corrigé : " + correctedText);
+            Console.WriteLine("Entrez votre texte en français :");
+            string texteUtilisateur = Console.ReadLine();
+            string texteCorrige = await EnvoyerRequeteIA($"Corrige l'orthographe et la grammaire du texte suivant en français, en retournant uniquement le texte corrigé : {texteUtilisateur}");
+            Console.WriteLine("\nTexte corrigé : " + texteCorrige);
         }
 
-        static async Task TraductionTexte()
+        static async Task TraduireTexte()
         {
             Console.WriteLine("Entrez le texte en français à traduire :");
-            string userText = Console.ReadLine();
+            string texteUtilisateur = Console.ReadLine();
             Console.WriteLine("\nChoisissez la traduction : (1) Anglais US, (2) Anglais UK");
-            string option = Console.ReadLine();
-            string targetLang = option == "2" ? "anglais britannique" : "anglais américain";
-            string translatedText = await EnvoyerRequeteIA($"Traduis ce texte du français vers l'{targetLang}, en retournant uniquement la traduction : {userText}");
-            Console.WriteLine("\nTexte traduit : " + translatedText);
+            string choixLangue = Console.ReadLine();
+            string langueCible = choixLangue == "2" ? "anglais britannique" : "anglais américain";
+            string texteTraduit = await EnvoyerRequeteIA($"Traduis ce texte du français vers l'{langueCible}, en retournant uniquement la traduction : {texteUtilisateur}");
+            Console.WriteLine("\nTexte traduit : " + texteTraduit);
         }
 
-        static async Task ObtenirMeteoEtGenererHTML()
+        static async Task AfficherMeteoEtCreerHTML()
         {
-            Console.Write("Entrez une Ville : ");
+            Console.Write("Entrez une ville : ");
             string ville = Console.ReadLine();
             using HttpClient client = new HttpClient();
-            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={config["MeteoApiKey"]}&units=metric&lang=fr";
+            string url = $"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={apiKeys["weatherApiKey"]}&units=metric&lang=fr";
 
             try
             {
                 string responseBody = await client.GetStringAsync(url);
-                var weatherData = JsonSerializer.Deserialize<JsonElement>(responseBody);
-                if (!weatherData.TryGetProperty("weather", out JsonElement meteo) || meteo.GetArrayLength() == 0)
+                var donneesMeteo = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                if (!donneesMeteo.TryGetProperty("weather", out JsonElement meteo) || meteo.GetArrayLength() == 0)
                 {
                     Console.WriteLine("Ville introuvable ou erreur API.");
                     return;
                 }
 
-                string description = meteo[0].GetProperty("description").GetString() ?? "Non disponible";
-                string temperature = weatherData.GetProperty("main").GetProperty("temp").ToString();
-                Console.WriteLine($"Météo : {description}");
+                string descriptionMeteo = meteo[0].GetProperty("description").GetString() ?? "Non disponible";
+                string temperature = donneesMeteo.GetProperty("main").GetProperty("temp").ToString();
+                Console.WriteLine($"Météo : {descriptionMeteo}");
                 Console.WriteLine($"Température : {temperature}°C");
-                GenererFichierHTML(ville, description, temperature);
+                CreerFichierHTML(ville, descriptionMeteo, temperature);
             }
             catch (Exception ex)
             {
@@ -106,9 +106,9 @@ namespace AICommandLineApp
             }
         }
 
-        static void GenererFichierHTML(string ville, string description, string temperature)
+        static void CreerFichierHTML(string ville, string descriptionMeteo, string temperature)
         {
-            string htmlContent = $@"<!DOCTYPE html>
+            string contenuHTML = $@"<!DOCTYPE html>
 <html lang=""fr"">
 <head>
 <meta charset=""UTF-8"">
@@ -132,21 +132,21 @@ body {{
 <body>
 <h1>Météo à {ville}</h1>
 <div class=""weather-container"">
-    <div class=""icon"">{Imagemeteo(description)}</div>
+    <div class=""icon"">{AssocierIconeMeteo(descriptionMeteo)}</div>
     <div class=""temperature"">{temperature}°C</div>
-    <div class=""description"">{description}</div>
+    <div class=""description"">{descriptionMeteo}</div>
 </div>
 </body>
 </html>";
 
-            string fileName = $"{ville}_meteo.html";
-            File.WriteAllText(fileName, htmlContent);
-            Console.WriteLine($"Fichier HTML généré : {fileName}");
+            string nomFichier = $"{ville}_meteo.html";
+            File.WriteAllText(nomFichier, contenuHTML);
+            Console.WriteLine($"Fichier HTML généré : {nomFichier}");
         }
 
-        static string Imagemeteo(string description)
+        static string AssocierIconeMeteo(string descriptionMeteo)
         {
-            var conditionsMeteo = new Dictionary<string, string>
+            var iconesMeteo = new Dictionary<string, string>
             {
                 { "soleil", "images/01.png" },
                 { "clair", "images/01.png" },
@@ -157,11 +157,11 @@ body {{
                 { "brouillard", "images/03.png" }
             };
 
-            foreach (var condition in conditionsMeteo)
+            foreach (var condition in iconesMeteo)
             {
-                if (description.Contains(condition.Key))
+                if (descriptionMeteo.Contains(condition.Key))
                 {
-                    return $"<img src='{condition.Value}' alt='{description}' />";
+                    return $"<img src='{condition.Value}' alt='{descriptionMeteo}' />";
                 }
             }
 
@@ -171,10 +171,10 @@ body {{
         static async Task<string> EnvoyerRequeteIA(string prompt)
         {
             using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {config["OpenAIApiKey"]}");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKeys["openAiKey"]}");
             var requestBody = new
             {
-                model = modele,
+                model = modeleIA,
                 messages = new[] { new { role = "user", content = prompt } }
             };
 
@@ -188,7 +188,7 @@ body {{
 
         static async Task QuitterApplication()
         {
-            Console.WriteLine("Merci d'avoir utilisé l'application. Au revoir !");
+            Console.WriteLine("Merci d'avoir utilisé l'application. À bientôt !");
             await Task.CompletedTask;
         }
     }
